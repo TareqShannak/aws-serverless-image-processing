@@ -1,0 +1,36 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Serverless Image Processing with S3 and Lambda
+
+Resources:
+  ResizeImageFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: image-listener/
+      Handler: lambda_image_function.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      MemorySize: 512
+      Timeout: 30
+
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - s3:GetObject
+                - s3:PutObject
+              Resource:
+                - "arn:aws:s3:::original-images-shannak"
+                - "arn:aws:s3:::original-images-shannak/*"
+                - "arn:aws:s3:::resized-images-shannak"
+                - "arn:aws:s3:::resized-images-shannak/*"
+
+      Events:
+        # Trigger Lambda when after object uploading to original-images-shannak bucket
+        S3UploadTrigger:
+          Type: S3
+          Properties:
+            Bucket: original-images-shannak
+            Events: s3:ObjectCreated:*
